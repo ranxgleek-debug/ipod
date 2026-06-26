@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>iPod</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect, useCallback } = React;
+
+    const CLIENT_ID = "801975f4623f4c4bbe0debf94802d750";
+    const REDIRECT_URI = "https://ranxgleek-debug.github.io/ipod/";
+    const SCOPES = [
+      "streaming",
+      "user-read-email",
+      "user-read-private",
+      "user-read-playback-state",
+      "user-modify-playback-state",
+      "user-library-read",
+      "playlist-read-private",
+    ].join(" ");
+
+    function formatTime(s) {
+      if (!s && s !== 0) return "0:00";
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m}:${sec.toString().padStart(2, "0")}`;
+    }
+
+    async function generateCodeVerifier() {
+      const array = new Uint8Array(32);
+      crypto.getRandomValues(array);
+      return btoa(String.fromCharCode(...array)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    }
+
+    async function generateCodeChallenge(verifier) {
+      const data = new TextEncoder().encode(verifier);
+      const digest = await crypto.subtle.digest("SHA-256", data);
+      return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    }
+
+    function AlbumArt({ imageUrl, track }) {
+      if (imageUrl) {
+        return (
+          <div style={{ width: "100%", aspectRatio: "1", borderRadius: "12px", overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+            <img src={imageUrl} alt="album" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        );
+      }
+      const initials = track ? track.artist.slice(0, 2).toUpperCase() : "♪";
+      return (
+        <div style={{ width: "100%", aspectRatio: "1", borderRadius: "12px", background: "linear-gradient(135deg, #1a0a2e, #6b21a8)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <span style={{ fontSize: "36px", fontWeight: "700", color: "rgba(255,255,255,0.9)" }}>{initials}</span>
+        </div>
+      );
+    }
+
+    function ClickWheel({ onAction }) {
+      const wheelRef = useRef(null);
+      const touchStartRef = useRef(null);
+      const lastAngleRef = useRef(null);
+      const accumulatedRef = useRef(0);
+
+      const getAngle = (cx, cy, x, y) => Math.atan2(y - cy, x - cx) * (180 / Math.PI);
+
+      const handleTouchStart = useCallback((e) => {
+        const touch = e.touches[0];
+        const rect = wheelRef.current.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        touchStartRef.current = { cx, cy };
+        lastAngleRef.current = getAngle(cx, cy, touch.clientX, touch.clientY);
+        accumulatedRef.current = 0;
+      }, []);
+
+      const handleTouchMove = useCallback((e) => {
+        e.preventDefault();
+        if (!touchStartRef.current || lastAngleRef.current === null) return;
+        const touch = e.touches[0];
+        const { cx, cy } = touchStartRef.current;
+        const dx = touch.clientX - cx, dy = touch.clientY - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const rect = wheelRef.current.getBoundingClientRect();
+        const r = rect.width / 2;
+        if (dist < r * 0.35 || dist > r * 0.97) return;
+        const angle = getAngle(cx, cy, touch.clientX, touch.clientY);
+        let delta = angle - lastAngleRef.current;
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+        lastAngleRef.current = angle;
+        accumulatedRef.current += delta;
+        if (Math.abs(accumulatedRef.current) > 18) {
+          onAction(accumulatedRef.current > 0 ? "wheel_cw" : "wheel_ccw");
+          accumulatedRef.current = 0;
+        }
+      }, [onAction]);
+
+      const handleTouchEnd = useCallback(() => {
+        touchStartRef.current = null;
+        lastAngleRef.current = null;
+      }, []);
+
+      const BTNS = [
+        { id: "menu", label: "MENU", style: { top: "6%", left: "50%", transform: "translateX(-50%)" } },
+        { id: "next", label: "▶▶", style: { top: "50%", right: "5%", transform: "translateY(-50%)" } },
+        { id: "prev", label: "◀◀", style: { top: "50%", left: "5%", transform: "translateY(-50%)" } },
+        { id: "playpause", label: "▶ ‖", style: { bottom: "6%", left: "50%", transform: "translateX(-50%)" } },
+      ];
+
+      return (
+        <div
+          ref={wheelRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            width: "100%", aspectRatio: "1", borderRadius: "50%",
+            background: "linear-gradient(145deg, #e8e8e8 0%, #d0d0d0 40%, #c0c0c0 100%)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -1px 2px rgba(0,0,0,0.2)",
+            position: "relative", userSelect: "none", WebkitUserSelect: "none",
+          }}
+        >
+          <div style={{ position: "absolute", inset: "4px", borderRadius: "50%", border: "1px solid rgba(0,0,0,0.12)", pointerEvents: "none" }} />
+          {BTNS.map((btn) => (
+            <button key={btn.id} onClick={() => onAction(btn.id)} style={{
+              position: "absolute", ...btn.style, background: "none", border: "none", cursor: "pointer",
+              fontSize: btn.id === "menu" ? "9px" : "11px", fontWeight: "700", color: "#333",
+              fontFamily: "system-ui", letterSpacing: btn.id === "menu" ? "1.5px" : "0",
+              padding: "8px", zIndex: 2, WebkitTapHighlightColor: "transparent",
+            }}>
+              {btn.label}
+            </button>
+          ))}
+          <button onClick={() => onAction("select")} style={{
+            position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            width: "38%", height: "38%", borderRadius: "50%",
+            background: "linear-gradient(145deg, #e0e0e0, #c8c8c8)", border: "none",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.8)",
+            cursor: "pointer", zIndex: 3, WebkitTapHighlightColor: "transparent",
+          }} />
+        </div>
+      );
+    }
+
+    function IPodSpotify() {
+      const [authState, setAuthState] = useState("idle");
+      const [token, setToken] = useState(null);
+      const [player, setPlayer] = useState(null);
+      const [deviceId, setDeviceId] = useState(null);
+      const [playback, setPlayback] = useState(null);
+      const [screen, setScreen] = useState("nowplaying");
+      const [menuIndex, setMenuIndex] = useState(0);
+      const [playlists, setPlaylists] = useState([]);
+      const [tracks, setTracks] = useState([]);
+      const [trackIndex, setTrackIndex] = useState(0);
+      const [listScreen, setListScreen] = useState("playlists");
+      const [volume, setVolume] = useState(70);
+      const [showVolume, setShowVolume] = useState(false);
+      const volTimerRef = useRef(null);
+      const sdkReadyRef = useRef(false);
+
+      const MENU_ITEMS = ["Now Playing", "Playlists", "Settings"];
+
+      // Handle OAuth callback
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        const storedVerifier = sessionStorage.getItem("pkce_verifier");
+        if (code && storedVerifier) {
+          setAuthState("authing");
+          exchangeToken(code, storedVerifier);
+        }
+      }, []);
+
+      // Check stored token
+      useEffect(() => {
+        const stored = sessionStorage.getItem("spotify_token");
+        if (stored) {
+          setToken(stored);
+          setAuthState("ready");
+        }
+      }, []);
+
+      async function exchangeToken(code, verifier) {
+        try {
+          const res = await fetch("https://accounts.spotify.com/api/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              grant_type: "authorization_code",
+              code,
+              redirect_uri: REDIRECT_URI,
+              client_id: CLIENT_ID,
+              code_verifier: verifier,
+            }),
+          });
+          const data = await res.json();
+          if (data.access_token) {
+            sessionStorage.setItem("spotify_token", data.access_token);
+            sessionStorage.removeItem("pkce_verifier");
+            window.history.replaceState({}, "", window.location.pathname);
+            setToken(data.access_token);
+            setAuthState("ready");
+          } else {
+            setAuthState("error");
+          }
+        } catch {
+          setAuthState("error");
+        }
+      }
+
+      async function handleLogin() {
+        const verifier = await generateCodeVerifier();
+        const challenge = await generateCodeChallenge(verifier);
+        sessionStorage.setItem("pkce_verifier", verifier);
+        const url = new URL("https://accounts.spotify.com/authorize");
+        url.searchParams.set("client_id", CLIENT_ID);
+        url.searchParams.set("response_type", "code");
+        url.searchParams.set("redirect_uri", REDIRECT_URI);
+        url.searchParams.set("scope", SCOPES);
+        url.searchParams.set("code_challenge_method", "S256");
+        url.searchParams.set("code_challenge", challenge);
+        window.location.href = url.toString();
+      }
+
+      // Load Spotify SDK
+      useEffect(() => {
+        if (!token || sdkReadyRef.current) return;
+        sdkReadyRef.current = true;
+
+        window.onSpotifyWebPlaybackSDKReady = () => {
+          const p = new window.Spotify.Player({
+            name: "iPod Classic",
+            getOAuthToken: (cb) => cb(token),
+            volume: volume / 100,
+          });
+          p.addListener("ready", ({ device_id }) => setDeviceId(device_id));
+          p.addListener("player_state_changed", (state) => { if (state) setPlayback(state); });
+          p.addListener("authentication_error", () => {
+            sessionStorage.removeItem("spotify_token");
+            setAuthState("idle");
+            setToken(null);
+          });
+          p.connect();
+          setPlayer(p);
+        };
+
+        if (!document.getElementById("spotify-sdk")) {
+          const script = document.createElement("script");
+          script.id = "spotify-sdk";
+          script.src = "https://sdk.scdn.co/spotify-player.js";
+          document.head.appendChild(script);
+        }
+      }, [token]);
+
+      // Fetch playlists
+      useEffect(() => {
+        if (!token) return;
+        fetch("https://api.spotify.com/v1/me/playlists?limit=20", {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then((r) => r.json()).then((d) => { if (d.items) setPlaylists(d.items); });
+      }, [token]);
+
+      async function loadPlaylist(playlist) {
+        const res = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=30`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.items) {
+          setTracks(data.items.filter((i) => i.track).map((i) => i.track));
+          setTrackIndex(0);
+          setListScreen("tracks");
+        }
+      }
+
+      async function playTrack(track) {
+        if (!deviceId) return;
+        await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ uris: [track.uri] }),
+        });
+        setScreen("nowplaying");
+      }
+
+      const showVolumeBar = () => {
+        setShowVolume(true);
+        if (volTimerRef.current) clearTimeout(volTimerRef.current);
+        volTimerRef.current = setTimeout(() => setShowVolume(false), 2000);
+      };
+
+      const handleAction = useCallback((action) => {
+        switch (action) {
+          case "playpause": player?.togglePlay(); break;
+          case "next": player?.nextTrack(); break;
+          case "prev": player?.previousTrack(); break;
+          case "menu":
+            if (screen === "nowplaying") { setScreen("menu"); setMenuIndex(0); }
+            else if (screen === "list" && listScreen === "tracks") { setListScreen("playlists"); }
+            else { setScreen("nowplaying"); }
+            break;
+          case "select":
+            if (screen === "menu") {
+              if (menuIndex === 0) setScreen("nowplaying");
+              else if (menuIndex === 1) { setScreen("list"); setListScreen("playlists"); }
+            }
+            break;
+          case "wheel_cw":
+            if (screen === "menu") setMenuIndex((i) => Math.min(i + 1, MENU_ITEMS.length - 1));
+            else if (screen === "list") setTrackIndex((i) => Math.min(i + 1, (listScreen === "playlists" ? playlists : tracks).length - 1));
+            else { setVolume((v) => { const nv = Math.min(v + 8, 100); player?.setVolume(nv / 100); showVolumeBar(); return nv; }); }
+            break;
+          case "wheel_ccw":
+            if (screen === "menu") setMenuIndex((i) => Math.max(i - 1, 0));
+            else if (screen === "list") setTrackIndex((i) => Math.max(i - 1, 0));
+            else { setVolume((v) => { const nv = Math.max(v - 8, 0); player?.setVolume(nv / 100); showVolumeBar(); return nv; }); }
+            break;
+        }
+      }, [screen, menuIndex, player, playlists, tracks, listScreen]);
+
+      const currentTrack = playback?.track_window?.current_track;
+      const isPlaying = playback ? !playback.paused : false;
+      const progressMs = playback?.position || 0;
+      const durationMs = playback?.duration || 0;
+      const progressPct = durationMs > 0 ? (progressMs / durationMs) * 100 : 0;
+      const albumImg = currentTrack?.album?.images?.[0]?.url;
+
+      const renderScreen = () => {
+        if (authState === "idle" || authState === "error") {
+          return (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "220px", gap: "12px", padding: "16px" }}>
+              <div style={{ fontSize: "28px" }}>🎵</div>
+              <div style={{ fontSize: "13px", fontWeight: "700", color: "#1a1a1a" }}>iPod</div>
+              <div style={{ fontSize: "10px", color: "#666", textAlign: "center" }}>Spotifyと連携して<br/>音楽を楽しもう</div>
+              {authState === "error" && <div style={{ fontSize: "9px", color: "red" }}>認証エラー。再試行してください</div>}
+              <button onClick={handleLogin} style={{
+                background: "#1DB954", color: "#fff", border: "none", borderRadius: "20px",
+                padding: "10px 24px", fontSize: "12px", fontWeight: "700", cursor: "pointer",
+              }}>Spotifyでログイン</button>
+            </div>
+          );
+        }
+
+        if (authState === "authing") {
+          return (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "220px" }}>
+              <div style={{ fontSize: "11px", color: "#666" }}>認証中...</div>
+            </div>
+          );
+        }
+
+        if (screen === "nowplaying") {
+          return (
+            <div style={{ padding: "14px", minHeight: "220px", background: currentTrack ? "linear-gradient(160deg, #0a0a0a, #1a1a2e)" : "#1a1a1a", position: "relative" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+                <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.5)", letterSpacing: "1px", fontWeight: "600" }}>NOW PLAYING</span>
+                <span style={{ fontSize: "9px", color: isPlaying ? "#1DB954" : "rgba(255,255,255,0.4)" }}>{isPlaying ? "▶ Playing" : "Paused"}</span>
+              </div>
+              <div style={{ marginBottom: "12px" }}>
+                <AlbumArt imageUrl={albumImg} track={currentTrack ? { artist: currentTrack.artists[0]?.name || "" } : null} />
+              </div>
+              {currentTrack ? (
+                <>
+                  <div style={{ marginBottom: "10px" }}>
+                    <div style={{ fontSize: "15px", fontWeight: "700", color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.name}</div>
+                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", marginTop: "2px" }}>{currentTrack.artists.map((a) => a.name).join(", ")}</div>
+                  </div>
+                  <div>
+                    <div style={{ height: "3px", background: "rgba(255,255,255,0.2)", borderRadius: "2px", overflow: "hidden", marginBottom: "5px" }}>
+                      <div style={{ height: "100%", width: `${progressPct}%`, background: "#1DB954", borderRadius: "2px" }} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", color: "rgba(255,255,255,0.5)" }}>
+                      <span>{formatTime(progressMs / 1000)}</span>
+                      <span>{formatTime(durationMs / 1000)}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: "center", paddingTop: "8px" }}>
+                  <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>MENUから曲を選ぼう</div>
+                </div>
+              )}
+              {showVolume && (
+                <div style={{ position: "absolute", bottom: "12px", left: "14px", right: "14px", background: "rgba(0,0,0,0.7)", borderRadius: "8px", padding: "6px 10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.6)" }}>🔈</span>
+                    <div style={{ flex: 1, height: "4px", background: "rgba(255,255,255,0.2)", borderRadius: "2px", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${volume}%`, background: "#1DB954", borderRadius: "2px" }} />
+                    </div>
+                    <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.6)" }}>🔊</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        if (screen === "menu") {
+          return (
+            <div>
+              <div style={{ background: "#1DB954", padding: "6px 12px", display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "11px", fontWeight: "700", color: "#fff" }}>iPod</span>
+                <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.8)" }}>🔋</span>
+              </div>
+              {MENU_ITEMS.map((item, i) => (
+                <div key={item} style={{
+                  padding: "11px 12px", display: "flex", justifyContent: "space-between", alignItems: "center",
+                  background: i === menuIndex ? "#1DB954" : "transparent",
+                  color: i === menuIndex ? "#fff" : "#1a1a1a",
+                  fontSize: "13px", fontWeight: i === menuIndex ? "600" : "400",
+                  borderBottom: "1px solid rgba(0,0,0,0.07)",
+                }}>
+                  <span>{item}</span>
+                  {i === menuIndex && <span style={{ fontSize: "10px" }}>▶</span>}
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        if (screen === "list") {
+          const items = listScreen === "playlists" ? playlists : tracks;
+          return (
+            <div>
+              <div style={{ background: "#1DB954", padding: "6px 12px" }}>
+                <span style={{ fontSize: "11px", fontWeight: "700", color: "#fff" }}>
+                  {listScreen === "playlists" ? "Playlists" : "Tracks"}
+                </span>
+              </div>
+              {items.length === 0 && (
+                <div style={{ padding: "20px", textAlign: "center", fontSize: "11px", color: "#666" }}>読み込み中...</div>
+              )}
+              {items.map((item, i) => (
+                <div key={item.id} onClick={() => {
+                  setTrackIndex(i);
+                  if (listScreen === "playlists") loadPlaylist(item);
+                  else playTrack(item);
+                }} style={{
+                  padding: "9px 12px", display: "flex", alignItems: "center", gap: "8px",
+                  background: i === trackIndex ? "#1DB954" : "transparent",
+                  color: i === trackIndex ? "#fff" : "#1a1a1a",
+                  borderBottom: "1px solid rgba(0,0,0,0.06)", cursor: "pointer",
+                }}>
+                  {(item.images?.[0]?.url || item.album?.images?.[0]?.url) ? (
+                    <img src={item.images?.[0]?.url || item.album?.images?.[0]?.url} alt="" style={{ width: "28px", height: "28px", borderRadius: "4px", objectFit: "cover", flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: "28px", height: "28px", borderRadius: "4px", background: "#1DB954", flexShrink: 0 }} />
+                  )}
+                  <div style={{ overflow: "hidden" }}>
+                    <div style={{ fontSize: "11px", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
+                    <div style={{ fontSize: "9px", opacity: 0.7, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {listScreen === "playlists" ? `${item.tracks?.total || 0} tracks` : item.artists?.map((a) => a.name).join(", ")}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+      };
+
+      return (
+        <div style={{ width: "min(320px, 90vw)", background: "linear-gradient(170deg, #f5f5f5 0%, #e8e8e8 50%, #dcdcdc 100%)", borderRadius: "36px", padding: "20px 20px 28px", boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 2px 4px rgba(255,255,255,0.5) inset", display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ background: "#1a1a1a", borderRadius: "16px", padding: "6px", boxShadow: "inset 0 2px 8px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.3)" }}>
+            <div style={{ background: "#e8e8e8", borderRadius: "10px", minHeight: "220px", overflow: "hidden", position: "relative" }}>
+              {renderScreen()}
+            </div>
+          </div>
+          <ClickWheel onAction={handleAction} />
+          <div style={{ textAlign: "center", marginTop: "-8px" }}>
+            <span style={{ fontSize: "11px", fontWeight: "700", color: "#888", letterSpacing: "2px" }}>iPod</span>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<IPodSpotify />);
+  </script>
+</body>
+</html>

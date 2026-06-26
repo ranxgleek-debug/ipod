@@ -6,54 +6,53 @@
   <title>iPod</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      min-height: 100vh;
-      background: #1a1a1a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    html, body {
+      width: 100%; height: 100%;
+      background: #000;
       font-family: system-ui, -apple-system, sans-serif;
-      padding: 16px;
       -webkit-tap-highlight-color: transparent;
+      overflow: hidden;
     }
     #app {
-      width: min(320px, 90vw);
-      background: linear-gradient(170deg, #f5f5f5 0%, #e8e8e8 50%, #dcdcdc 100%);
-      border-radius: 36px;
-      padding: 20px 20px 28px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 2px 4px rgba(255,255,255,0.5) inset;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      background: #000;
     }
-    .screen-bezel {
-      background: #1a1a1a;
-      border-radius: 16px;
-      padding: 6px;
-      box-shadow: inset 0 2px 8px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.3);
-    }
-    .screen {
-      background: #e8e8e8;
-      border-radius: 10px;
-      min-height: 220px;
+
+    /* ===== SCREEN HALF ===== */
+    #screen-area {
+      flex: 1;
       overflow: hidden;
       position: relative;
     }
+
+    /* ===== WHEEL HALF ===== */
+    #wheel-area {
+      height: 55vw;
+      max-height: 55vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      flex-shrink: 0;
+    }
     .wheel-wrap {
       position: relative;
-      width: 100%;
+      width: min(72vw, 72vh * 0.72);
       aspect-ratio: 1;
       border-radius: 50%;
-      background: linear-gradient(145deg, #e8e8e8 0%, #d0d0d0 40%, #c0c0c0 100%);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -1px 2px rgba(0,0,0,0.2);
+      background: radial-gradient(circle at 35% 35%, #4a4a4a, #2a2a2a 60%, #1a1a1a);
+      box-shadow: 0 0 0 3px #333, 0 8px 32px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.15);
       user-select: none;
       -webkit-user-select: none;
     }
     .wheel-ring {
       position: absolute;
-      inset: 4px;
+      inset: 6px;
       border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.12);
+      border: 1px solid rgba(255,255,255,0.08);
       pointer-events: none;
     }
     .wheel-btn {
@@ -62,154 +61,189 @@
       border: none;
       cursor: pointer;
       font-weight: 700;
-      color: #333;
+      color: rgba(255,255,255,0.7);
       font-family: system-ui;
-      padding: 8px;
+      padding: 14px;
       z-index: 2;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
+      font-size: clamp(8px, 2.5vw, 11px);
     }
-    .btn-menu { font-size: 9px; letter-spacing: 1.5px; top: 6%; left: 50%; transform: translateX(-50%); }
-    .btn-next { font-size: 11px; top: 50%; right: 5%; transform: translateY(-50%); }
-    .btn-prev { font-size: 11px; top: 50%; left: 5%; transform: translateY(-50%); }
-    .btn-play { font-size: 11px; bottom: 6%; left: 50%; transform: translateX(-50%); }
+    .btn-menu { letter-spacing: 1.5px; top: 4%; left: 50%; transform: translateX(-50%); }
+    .btn-next { top: 50%; right: 3%; transform: translateY(-50%); }
+    .btn-prev { top: 50%; left: 3%; transform: translateY(-50%); }
+    .btn-play { bottom: 4%; left: 50%; transform: translateX(-50%); }
     .btn-select {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 38%; height: 38%;
+      width: 36%; height: 36%;
       border-radius: 50%;
-      background: linear-gradient(145deg, #e0e0e0, #c8c8c8);
+      background: radial-gradient(circle at 40% 35%, #3a3a3a, #1a1a1a);
       border: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.8);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1);
       cursor: pointer;
       z-index: 3;
       -webkit-tap-highlight-color: transparent;
     }
-    .logo {
-      text-align: center;
-      margin-top: -8px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #888;
-      letter-spacing: 2px;
-    }
-    /* Screen content styles */
+
+    /* ===== SCREEN CONTENT ===== */
     .login-screen {
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; height: 220px; gap: 12px; padding: 16px;
+      justify-content: center; height: 100%; gap: 16px; padding: 24px;
+      background: #000;
     }
     .spotify-btn {
       background: #1DB954; color: #fff; border: none;
-      border-radius: 20px; padding: 10px 24px;
-      font-size: 12px; font-weight: 700; cursor: pointer;
+      border-radius: 24px; padding: 14px 32px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      touch-action: manipulation;
     }
+    .menu-screen { background: #000; height: 100%; }
     .menu-header {
-      background: #1DB954; padding: 6px 12px;
+      padding: 10px 16px;
       display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #222;
     }
-    .menu-header span { font-size: 11px; font-weight: 700; color: #fff; }
+    .menu-header-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 1px; }
     .menu-item {
-      padding: 11px 12px; display: flex;
+      padding: 14px 16px; display: flex;
       justify-content: space-between; align-items: center;
-      font-size: 13px; border-bottom: 1px solid rgba(0,0,0,0.07);
-      cursor: pointer;
+      font-size: 15px; border-bottom: 1px solid #1a1a1a;
+      cursor: pointer; color: #fff;
     }
     .menu-item.active { background: #1DB954; color: #fff; font-weight: 600; }
+    .list-screen { background: #000; height: 100%; overflow-y: auto; }
+    .list-header {
+      padding: 10px 16px; border-bottom: 1px solid #222;
+      font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 1px;
+      position: sticky; top: 0; background: #000; z-index: 1;
+    }
     .list-item {
-      padding: 9px 12px; display: flex; align-items: center; gap: 8px;
-      border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer;
+      padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #1a1a1a; cursor: pointer; color: #fff;
     }
-    .list-item.active { background: #1DB954; color: #fff; }
-    .list-thumb {
-      width: 28px; height: 28px; border-radius: 4px;
-      object-fit: cover; flex-shrink: 0;
+    .list-item.active { background: #1DB954; }
+    .list-thumb { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+    .list-thumb-placeholder { width: 40px; height: 40px; border-radius: 6px; background: #222; flex-shrink: 0; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .list-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list-sub { font-size: 11px; opacity: 0.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
+    /* NOW PLAYING */
+    .np-screen {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      padding: 16px 20px 12px;
+      position: relative;
     }
-    .list-thumb-placeholder {
-      width: 28px; height: 28px; border-radius: 4px;
-      background: #1DB954; flex-shrink: 0;
-    }
-    .list-title { font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .list-sub { font-size: 9px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .now-playing-wrap {
-      padding: 14px; min-height: 220px; position: relative;
-      background: linear-gradient(160deg, #0a0a0a, #1a1a2e);
-    }
-    .np-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-    .np-label { font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 1px; font-weight: 600; }
-    .np-status { font-size: 9px; }
-    .album-art {
-      width: 100%; aspect-ratio: 1; border-radius: 12px;
-      overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    .np-top {
+      display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 12px;
     }
-    .album-art img { width: 100%; height: 100%; object-fit: cover; }
-    .album-art-placeholder {
-      width: 100%; aspect-ratio: 1; border-radius: 12px;
-      background: linear-gradient(135deg, #1a0a2e, #6b21a8);
+    .np-label { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 2px; font-weight: 600; }
+    .np-status { font-size: 10px; }
+    .np-art {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      min-height: 0;
+    }
+    .np-art img {
+      width: 100%;
+      max-height: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+    }
+    .np-art-placeholder {
+      width: 100%; aspect-ratio: 1;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1a0a2e, #2d1b69);
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5); margin-bottom: 12px;
-      font-size: 36px; font-weight: 700; color: rgba(255,255,255,0.9);
+      font-size: 48px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.8);
     }
-    .track-title { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .track-artist { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
-    .progress-bar-bg { height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; margin: 10px 0 5px; }
-    .progress-bar-fill { height: 100%; background: #1DB954; border-radius: 2px; transition: width 0.5s linear; }
-    .progress-times { display: flex; justify-content: space-between; font-size: 9px; color: rgba(255,255,255,0.5); }
+    .np-info { margin-bottom: 10px; }
+    .np-title { font-size: 17px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .np-artist { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 3px; }
+    .np-progress { }
+    .progress-bar-bg { height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+    .progress-bar-fill { height: 100%; background: #1DB954; border-radius: 2px; }
+    .progress-times { display: flex; justify-content: space-between; font-size: 10px; color: rgba(255,255,255,0.4); }
     .volume-overlay {
-      position: absolute; bottom: 12px; left: 14px; right: 14px;
-      background: rgba(0,0,0,0.7); border-radius: 8px; padding: 6px 10px;
+      position: absolute; bottom: 14px; left: 20px; right: 20px;
+      background: rgba(30,30,30,0.95); border-radius: 12px; padding: 8px 14px;
     }
-    .volume-row { display: flex; align-items: center; gap: 8px; }
-    .volume-bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; }
+    .volume-row { display: flex; align-items: center; gap: 10px; }
+    .volume-bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; }
     .volume-bar-fill { height: 100%; background: #1DB954; border-radius: 2px; }
-    .hint { text-align: center; padding-top: 8px; font-size: 11px; color: rgba(255,255,255,0.4); }
+    .hint { flex: 1; display:flex; align-items:center; justify-content:center; font-size: 13px; color: rgba(255,255,255,0.3); }
+
+    .toast {
+      position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
+      background: rgba(30,30,30,0.95); color: #fff; padding: 8px 18px;
+      border-radius: 20px; font-size: 12px; z-index: 999;
+      pointer-events: none; opacity: 0; transition: opacity 0.3s;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
 <div id="app">
-  <div class="screen-bezel">
-    <div class="screen" id="screen"></div>
+  <div id="screen-area">
+    <div id="screen" style="height:100%"></div>
   </div>
-  <div class="wheel-wrap" id="wheel">
-    <div class="wheel-ring"></div>
-    <button class="wheel-btn btn-menu" id="btnMenu">MENU</button>
-    <button class="wheel-btn btn-next" id="btnNext">▶▶</button>
-    <button class="wheel-btn btn-prev" id="btnPrev">◀◀</button>
-    <button class="wheel-btn btn-play" id="btnPlay">▶ ‖</button>
-    <button class="btn-select" id="btnSelect"></button>
+  <div id="wheel-area">
+    <div class="wheel-wrap" id="wheel">
+      <div class="wheel-ring"></div>
+      <button class="wheel-btn btn-menu" id="btnMenu">MENU</button>
+      <button class="wheel-btn btn-next" id="btnNext">▶▶</button>
+      <button class="wheel-btn btn-prev" id="btnPrev">◀◀</button>
+      <button class="wheel-btn btn-play" id="btnPlay">▶ ‖</button>
+      <button class="btn-select" id="btnSelect"></button>
+    </div>
   </div>
-  <div class="logo">iPod</div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
 const CLIENT_ID = "801975f4623f4c4bbe0debf94802d750";
 const REDIRECT_URI = "https://ranxgleek-debug.github.io/ipod/";
-const SCOPES = "streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state user-library-read playlist-read-private";
+const SCOPES = "user-read-email user-read-private user-read-playback-state user-modify-playback-state user-library-read playlist-read-private";
 
-// --- State ---
 let state = {
-  authState: "idle", // idle | authing | ready | error
+  authState: "idle",
   token: null,
-  player: null,
-  deviceId: null,
   playback: null,
-  screen: "nowplaying", // nowplaying | menu | list
+  screen: "nowplaying",
   menuIndex: 0,
   playlists: [],
   tracks: [],
   trackIndex: 0,
-  listScreen: "playlists", // playlists | tracks
+  listScreen: "playlists",
   volume: 70,
   showVolume: false,
 };
 const MENU_ITEMS = ["Now Playing", "Playlists", "Settings"];
 let volTimer = null;
-let sdkLoaded = false;
+let pollTimer = null;
 
 function setState(patch) {
   Object.assign(state, patch);
   render();
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
 }
 
 function fmt(s) {
@@ -219,7 +253,6 @@ function fmt(s) {
   return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-// --- Auth (PKCE) ---
 async function genVerifier() {
   const arr = new Uint8Array(32);
   crypto.getRandomValues(arr);
@@ -259,11 +292,12 @@ async function exchangeToken(code, verifier) {
     const data = await res.json();
     if (data.access_token) {
       sessionStorage.setItem("spotify_token", data.access_token);
+      if (data.refresh_token) sessionStorage.setItem("spotify_refresh", data.refresh_token);
       sessionStorage.removeItem("pkce_verifier");
       window.history.replaceState({}, "", window.location.pathname);
       setState({ token: data.access_token, authState: "ready" });
-      initSDK(data.access_token);
       fetchPlaylists(data.access_token);
+      startPolling(data.access_token);
     } else {
       setState({ authState: "error" });
     }
@@ -272,56 +306,78 @@ async function exchangeToken(code, verifier) {
   }
 }
 
-// --- Spotify SDK ---
-function initSDK(token) {
-  if (sdkLoaded) return;
-  sdkLoaded = true;
-  window.onSpotifyWebPlaybackSDKReady = () => {
-    const p = new window.Spotify.Player({
-      name: "iPod Classic",
-      getOAuthToken: cb => cb(token),
-      volume: state.volume / 100,
-    });
-    p.addListener("ready", ({ device_id }) => setState({ deviceId: device_id }));
-    p.addListener("player_state_changed", s => { if (s) setState({ playback: s }); });
-    p.addListener("authentication_error", () => {
-      sessionStorage.removeItem("spotify_token");
-      setState({ authState: "idle", token: null });
-    });
-    p.connect();
-    setState({ player: p });
-  };
-  const s = document.createElement("script");
-  s.src = "https://sdk.scdn.co/spotify-player.js";
-  document.head.appendChild(s);
+async function apiCall(path, method, body) {
+  const res = await fetch("https://api.spotify.com/v1" + path, {
+    method: method || "GET",
+    headers: {
+      Authorization: `Bearer ${state.token}`,
+      ...(body ? { "Content-Type": "application/json" } : {})
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (res.status === 401) {
+    sessionStorage.removeItem("spotify_token");
+    setState({ authState: "idle", token: null });
+    return null;
+  }
+  if (res.status === 204 || res.status === 202 || res.status === 200 && res.headers.get("content-length") === "0") return {};
+  if (!res.ok) return null;
+  return res.json().catch(() => ({}));
 }
 
-async function fetchPlaylists(token) {
-  const r = await fetch("https://api.spotify.com/v1/me/playlists?limit=20", {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const d = await r.json();
-  if (d.items) setState({ playlists: d.items });
+async function fetchPlaylists() {
+  const d = await apiCall("/me/playlists?limit=20");
+  if (d && d.items) setState({ playlists: d.items });
 }
 
 async function loadPlaylist(playlist) {
-  const r = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=30`, {
-    headers: { Authorization: `Bearer ${state.token}` }
-  });
-  const d = await r.json();
-  if (d.items) {
+  showToast("読み込み中...");
+  const d = await apiCall(`/playlists/${playlist.id}/tracks?limit=30`);
+  if (d && d.items) {
     setState({ tracks: d.items.filter(i => i.track).map(i => i.track), trackIndex: 0, listScreen: "tracks" });
   }
 }
 
 async function playTrack(track) {
-  if (!state.deviceId) return;
-  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${state.deviceId}`, {
-    method: "PUT",
-    headers: { Authorization: `Bearer ${state.token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ uris: [track.uri] }),
-  });
-  setState({ screen: "nowplaying" });
+  showToast("デバイスを探しています...");
+  const d = await apiCall("/me/player/devices");
+  const devices = d && d.devices ? d.devices : [];
+  if (devices.length === 0) {
+    showToast("Spotifyアプリを起動してください");
+    return;
+  }
+  const active = devices.find(d => d.is_active) || devices[0];
+  const res = await apiCall(`/me/player/play?device_id=${active.id}`, "PUT", { uris: [track.uri] });
+  if (res !== null) {
+    showToast("▶ " + track.name);
+    setState({ screen: "nowplaying" });
+    setTimeout(pollPlayback, 800);
+  } else {
+    showToast("再生できませんでした");
+  }
+}
+
+async function togglePlay() {
+  const pb = state.playback;
+  if (!pb) { showToast("曲を選んでください"); return; }
+  if (pb.is_playing) await apiCall("/me/player/pause", "PUT");
+  else await apiCall("/me/player/play", "PUT");
+  setTimeout(pollPlayback, 300);
+}
+
+async function skipNext() { await apiCall("/me/player/next", "POST"); setTimeout(pollPlayback, 500); }
+async function skipPrev() { await apiCall("/me/player/previous", "POST"); setTimeout(pollPlayback, 500); }
+async function setVolume(pct) { await apiCall(`/me/player/volume?volume_percent=${pct}`, "PUT"); }
+
+async function pollPlayback() {
+  const d = await apiCall("/me/player");
+  if (d && d.item) setState({ playback: d });
+}
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(pollPlayback, 3000);
+  pollPlayback();
 }
 
 function showVolumeBar() {
@@ -330,13 +386,12 @@ function showVolumeBar() {
   volTimer = setTimeout(() => setState({ showVolume: false }), 2000);
 }
 
-// --- Actions ---
 function handleAction(action) {
-  const { screen, menuIndex, listScreen, playlists, tracks, player, volume } = state;
+  const { screen, menuIndex, listScreen, playlists, tracks, volume } = state;
   switch(action) {
-    case "playpause": player && player.togglePlay(); break;
-    case "next": player && player.nextTrack(); break;
-    case "prev": player && player.previousTrack(); break;
+    case "playpause": togglePlay(); break;
+    case "next": skipNext(); break;
+    case "prev": skipPrev(); break;
     case "menu":
       if (screen === "nowplaying") setState({ screen: "menu", menuIndex: 0 });
       else if (screen === "list" && listScreen === "tracks") setState({ listScreen: "playlists" });
@@ -349,71 +404,75 @@ function handleAction(action) {
       }
       break;
     case "wheel_cw":
-      if (screen === "menu") setState({ menuIndex: Math.min(menuIndex + 1, MENU_ITEMS.length - 1) });
-      else if (screen === "list") setState({ trackIndex: Math.min(state.trackIndex + 1, (listScreen === "playlists" ? playlists : tracks).length - 1) });
-      else { const nv = Math.min(volume + 8, 100); player && player.setVolume(nv/100); setState({ volume: nv }); showVolumeBar(); }
+      if (screen === "menu") setState({ menuIndex: Math.min(menuIndex+1, MENU_ITEMS.length-1) });
+      else if (screen === "list") setState({ trackIndex: Math.min(state.trackIndex+1, (listScreen==="playlists"?playlists:tracks).length-1) });
+      else { const nv=Math.min(volume+8,100); setVolume(nv); setState({volume:nv}); showVolumeBar(); }
       break;
     case "wheel_ccw":
-      if (screen === "menu") setState({ menuIndex: Math.max(menuIndex - 1, 0) });
-      else if (screen === "list") setState({ trackIndex: Math.max(state.trackIndex - 1, 0) });
-      else { const nv = Math.max(volume - 8, 0); player && player.setVolume(nv/100); setState({ volume: nv }); showVolumeBar(); }
+      if (screen === "menu") setState({ menuIndex: Math.max(menuIndex-1, 0) });
+      else if (screen === "list") setState({ trackIndex: Math.max(state.trackIndex-1, 0) });
+      else { const nv=Math.max(volume-8,0); setVolume(nv); setState({volume:nv}); showVolumeBar(); }
       break;
   }
 }
 
-// --- Render ---
 function render() {
   const scr = document.getElementById("screen");
   if (!scr) return;
   const { authState, screen, menuIndex, listScreen, playlists, tracks, trackIndex, playback, showVolume, volume } = state;
 
-  const currentTrack = playback && playback.track_window && playback.track_window.current_track;
-  const isPlaying = playback ? !playback.paused : false;
-  const progressMs = playback ? playback.position : 0;
-  const durationMs = playback ? playback.duration : 0;
-  const progressPct = durationMs > 0 ? (progressMs / durationMs) * 100 : 0;
-  const albumImg = currentTrack && currentTrack.album && currentTrack.album.images && currentTrack.album.images[0] ? currentTrack.album.images[0].url : null;
+  const currentTrack = playback && playback.item;
+  const isPlaying = playback ? playback.is_playing : false;
+  const progressMs = playback ? playback.progress_ms : 0;
+  const durationMs = currentTrack ? currentTrack.duration_ms : 0;
+  const progressPct = durationMs > 0 ? (progressMs/durationMs)*100 : 0;
+  const albumImg = currentTrack?.album?.images?.[0]?.url;
 
   if (authState === "idle" || authState === "error") {
     scr.innerHTML = `
       <div class="login-screen">
-        <div style="font-size:28px">🎵</div>
-        <div style="font-size:13px;font-weight:700;color:#1a1a1a">iPod</div>
-        <div style="font-size:10px;color:#666;text-align:center">Spotifyと連携して<br>音楽を楽しもう</div>
-        ${authState === "error" ? '<div style="font-size:9px;color:red">認証エラー。再試行してください</div>' : ''}
+        <div style="font-size:48px">🎵</div>
+        <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:2px">iPod</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.4);text-align:center">Spotifyと連携して音楽を楽しもう</div>
+        ${authState==="error"?'<div style="font-size:11px;color:#ff4444">認証エラー。再試行してください</div>':''}
         <button class="spotify-btn" onclick="handleLogin()">Spotifyでログイン</button>
       </div>`;
     return;
   }
 
   if (authState === "authing") {
-    scr.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:220px;font-size:11px;color:#666">認証中...</div>`;
+    scr.innerHTML = `<div class="login-screen"><div style="font-size:13px;color:rgba(255,255,255,0.4)">認証中...</div></div>`;
     return;
   }
 
   if (screen === "nowplaying") {
     scr.innerHTML = `
-      <div class="now-playing-wrap">
-        <div class="np-header">
+      <div class="np-screen">
+        <div class="np-top">
           <span class="np-label">NOW PLAYING</span>
-          <span class="np-status" style="color:${isPlaying ? '#1DB954' : 'rgba(255,255,255,0.4)'}">${isPlaying ? '▶ Playing' : 'Paused'}</span>
+          <span class="np-status" style="color:${isPlaying?'#1DB954':'rgba(255,255,255,0.3)'}">${isPlaying?'▶ Playing':'Paused'}</span>
         </div>
-        ${albumImg
-          ? `<div class="album-art"><img src="${albumImg}" alt="album"></div>`
-          : `<div class="album-art-placeholder">${currentTrack ? currentTrack.artists[0].name.slice(0,2).toUpperCase() : '♪'}</div>`
-        }
+        <div class="np-art">
+          ${albumImg
+            ? `<img src="${albumImg}" alt="album">`
+            : `<div class="np-art-placeholder">♪</div>`}
+        </div>
         ${currentTrack ? `
-          <div class="track-title">${currentTrack.name}</div>
-          <div class="track-artist">${currentTrack.artists.map(a => a.name).join(', ')}</div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${progressPct}%"></div></div>
-          <div class="progress-times"><span>${fmt(progressMs/1000)}</span><span>${fmt(durationMs/1000)}</span></div>
-        ` : '<div class="hint">MENUから曲を選ぼう</div>'}
+          <div class="np-info">
+            <div class="np-title">${currentTrack.name}</div>
+            <div class="np-artist">${currentTrack.artists.map(a=>a.name).join(', ')}</div>
+          </div>
+          <div class="np-progress">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${progressPct}%"></div></div>
+            <div class="progress-times"><span>${fmt(progressMs/1000)}</span><span>${fmt(durationMs/1000)}</span></div>
+          </div>
+        ` : '<div class="hint">MENUからプレイリストを選ぼう</div>'}
         ${showVolume ? `
           <div class="volume-overlay">
             <div class="volume-row">
-              <span style="font-size:9px;color:rgba(255,255,255,0.6)">🔈</span>
+              <span style="font-size:10px;color:rgba(255,255,255,0.5)">🔈</span>
               <div class="volume-bar-bg"><div class="volume-bar-fill" style="width:${volume}%"></div></div>
-              <span style="font-size:9px;color:rgba(255,255,255,0.6)">🔊</span>
+              <span style="font-size:10px;color:rgba(255,255,255,0.5)">🔊</span>
             </div>
           </div>` : ''}
       </div>`;
@@ -422,32 +481,40 @@ function render() {
 
   if (screen === "menu") {
     scr.innerHTML = `
-      <div class="menu-header"><span>iPod</span><span style="font-size:9px;color:rgba(255,255,255,0.8)">🔋</span></div>
-      ${MENU_ITEMS.map((item, i) => `
-        <div class="menu-item ${i === menuIndex ? 'active' : ''}" onclick="handleMenuTap(${i})">
-          <span>${item}</span>${i === menuIndex ? '<span style="font-size:10px">▶</span>' : ''}
-        </div>`).join('')}`;
+      <div class="menu-screen">
+        <div class="menu-header">
+          <span class="menu-header-title">iPod</span>
+          <span style="font-size:10px;color:rgba(255,255,255,0.3)">🔋</span>
+        </div>
+        ${MENU_ITEMS.map((item,i) => `
+          <div class="menu-item ${i===menuIndex?'active':''}" onclick="handleMenuTap(${i})">
+            <span>${item}</span>
+            <span style="font-size:11px;opacity:0.5">▶</span>
+          </div>`).join('')}
+      </div>`;
     return;
   }
 
   if (screen === "list") {
-    const items = listScreen === "playlists" ? playlists : tracks;
+    const items = listScreen==="playlists" ? playlists : tracks;
     scr.innerHTML = `
-      <div class="menu-header"><span>${listScreen === "playlists" ? "Playlists" : "Tracks"}</span></div>
-      ${items.length === 0 ? '<div style="padding:20px;text-align:center;font-size:11px;color:#666">読み込み中...</div>' : ''}
-      ${items.map((item, i) => {
-        const img = (item.images && item.images[0] && item.images[0].url) || (item.album && item.album.images && item.album.images[0] && item.album.images[0].url);
-        const sub = listScreen === "playlists"
-          ? `${(item.tracks && item.tracks.total) || 0} tracks`
-          : (item.artists || []).map(a => a.name).join(', ');
-        return `<div class="list-item ${i === trackIndex ? 'active' : ''}" onclick="handleListTap(${i})">
-          ${img ? `<img class="list-thumb" src="${img}" alt="">` : '<div class="list-thumb-placeholder"></div>'}
-          <div style="overflow:hidden">
-            <div class="list-title">${item.name}</div>
-            <div class="list-sub">${sub}</div>
-          </div>
-        </div>`;
-      }).join('')}`;
+      <div class="list-screen">
+        <div class="list-header">${listScreen==="playlists"?"Playlists":"Tracks"}</div>
+        ${items.length===0?'<div style="padding:24px;text-align:center;font-size:12px;color:rgba(255,255,255,0.3)">読み込み中...</div>':''}
+        ${items.map((item,i) => {
+          const img = item.images?.[0]?.url || item.album?.images?.[0]?.url;
+          const sub = listScreen==="playlists"
+            ? `${item.tracks?.total||0} tracks`
+            : (item.artists||[]).map(a=>a.name).join(', ');
+          return `<div class="list-item ${i===trackIndex?'active':''}" onclick="handleListTap(${i})">
+            ${img?`<img class="list-thumb" src="${img}" alt="">`:'<div class="list-thumb-placeholder">♪</div>'}
+            <div style="overflow:hidden;flex:1">
+              <div class="list-title">${item.name}</div>
+              <div class="list-sub">${sub}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
     return;
   }
 }
@@ -460,72 +527,69 @@ function handleMenuTap(i) {
 function handleListTap(i) {
   const { listScreen, playlists, tracks } = state;
   setState({ trackIndex: i });
-  if (listScreen === "playlists") loadPlaylist(playlists[i]);
+  if (listScreen==="playlists") loadPlaylist(playlists[i]);
   else playTrack(tracks[i]);
 }
 
-// --- Click Wheel touch ---
+// Click Wheel touch
 (function() {
   const wheel = document.getElementById("wheel");
-  let touchStart = null, lastAngle = null, accumulated = 0;
-
-  function getAngle(cx, cy, x, y) { return Math.atan2(y - cy, x - cx) * (180 / Math.PI); }
+  let touchStart=null, lastAngle=null, accumulated=0;
+  function getAngle(cx,cy,x,y){ return Math.atan2(y-cy,x-cx)*(180/Math.PI); }
 
   wheel.addEventListener("touchstart", e => {
-    const t = e.touches[0];
-    const r = wheel.getBoundingClientRect();
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    touchStart = { cx, cy };
-    lastAngle = getAngle(cx, cy, t.clientX, t.clientY);
-    accumulated = 0;
-  }, { passive: true });
+    const t=e.touches[0];
+    const r=wheel.getBoundingClientRect();
+    const cx=r.left+r.width/2, cy=r.top+r.height/2;
+    touchStart={cx,cy};
+    lastAngle=getAngle(cx,cy,t.clientX,t.clientY);
+    accumulated=0;
+  }, {passive:true});
 
   wheel.addEventListener("touchmove", e => {
-    if (!touchStart || lastAngle === null) return;
+    if(!touchStart||lastAngle===null) return;
     e.preventDefault();
-    const t = e.touches[0];
-    const { cx, cy } = touchStart;
-    const dx = t.clientX - cx, dy = t.clientY - cy;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    const r = wheel.getBoundingClientRect().width / 2;
-    if (dist < r * 0.35 || dist > r * 0.97) return;
-    const angle = getAngle(cx, cy, t.clientX, t.clientY);
-    let delta = angle - lastAngle;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-    lastAngle = angle;
-    accumulated += delta;
-    if (Math.abs(accumulated) > 18) {
-      handleAction(accumulated > 0 ? "wheel_cw" : "wheel_ccw");
-      accumulated = 0;
+    const t=e.touches[0];
+    const {cx,cy}=touchStart;
+    const dx=t.clientX-cx, dy=t.clientY-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const r=wheel.getBoundingClientRect().width/2;
+    if(dist<r*0.35||dist>r*0.97) return;
+    const angle=getAngle(cx,cy,t.clientX,t.clientY);
+    let delta=angle-lastAngle;
+    if(delta>180) delta-=360;
+    if(delta<-180) delta+=360;
+    lastAngle=angle;
+    accumulated+=delta;
+    if(Math.abs(accumulated)>18){
+      handleAction(accumulated>0?"wheel_cw":"wheel_ccw");
+      accumulated=0;
     }
-  }, { passive: false });
+  }, {passive:false});
 
-  wheel.addEventListener("touchend", () => { touchStart = null; lastAngle = null; });
+  wheel.addEventListener("touchend", ()=>{touchStart=null;lastAngle=null;});
 })();
 
-// --- Button events ---
-document.getElementById("btnMenu").addEventListener("click", () => handleAction("menu"));
-document.getElementById("btnNext").addEventListener("click", () => handleAction("next"));
-document.getElementById("btnPrev").addEventListener("click", () => handleAction("prev"));
-document.getElementById("btnPlay").addEventListener("click", () => handleAction("playpause"));
-document.getElementById("btnSelect").addEventListener("click", () => handleAction("select"));
+document.getElementById("btnMenu").addEventListener("click", ()=>handleAction("menu"));
+document.getElementById("btnNext").addEventListener("click", ()=>handleAction("next"));
+document.getElementById("btnPrev").addEventListener("click", ()=>handleAction("prev"));
+document.getElementById("btnPlay").addEventListener("click", ()=>handleAction("playpause"));
+document.getElementById("btnSelect").addEventListener("click", ()=>handleAction("select"));
 
-// --- Init ---
 (async function init() {
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get("code");
-  const verifier = sessionStorage.getItem("pkce_verifier");
-  if (code && verifier) {
-    setState({ authState: "authing" });
-    await exchangeToken(code, verifier);
+  const params=new URLSearchParams(window.location.search);
+  const code=params.get("code");
+  const verifier=sessionStorage.getItem("pkce_verifier");
+  if(code&&verifier){
+    setState({authState:"authing"});
+    await exchangeToken(code,verifier);
     return;
   }
-  const stored = sessionStorage.getItem("spotify_token");
-  if (stored) {
-    setState({ token: stored, authState: "ready" });
-    initSDK(stored);
-    fetchPlaylists(stored);
+  const stored=sessionStorage.getItem("spotify_token");
+  if(stored){
+    setState({token:stored,authState:"ready"});
+    fetchPlaylists();
+    startPolling();
     return;
   }
   render();
